@@ -33,17 +33,18 @@ logGoogle <- gSample %>%
 logGoogle %>% group_by_activity %>%
   n_cases
 
+#create event map
+
 logGoogle %>% 
   filter_activity (c("Checkout", "Product view","Add to cart" "Transaction", "content page", "product selector page", "content page", "homepage")) %>% 
   process_map(type_nodes = frequency('absolute', color_scale = "OrRd"),type_edges = frequency('relative_case'),rankdir = "TB")
 
-
+#create traces file
 tra <- logGoogle %>% traces 
-
 write.csv(tra, file = "VIC traces.csv")
 
 
-
+####others
 logGoogle %>% activity_frequency(level = "activity")
 
 logGoogle$case_id == '1000254393998610432'
