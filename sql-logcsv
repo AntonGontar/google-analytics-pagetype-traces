@@ -1,0 +1,25 @@
+SELECT * FROM (SELECT 
+fullVisitorId as case_id
+, 'start' as status
+,    TIMESTAMP_MILLIS(1000 * visitStartTime + h.time) AS transaction_time
+, CASE 
+  WHEN h.eCommerceAction.action_type = '2' then 'Product view'
+  WHEN h.eCommerceAction.action_type = '3' then 'Add to cart'
+  WHEN h.eCommerceAction.action_type = '5' then 'Checkout'
+  WHEN h.eCommerceAction.action_type = '6' then 'Transaction'
+  WHEN h.contentGroup.contentGroup1 = 'content page' and h.type = 'PAGE' then 'content page'
+  WHEN h.contentGroup.contentGroup1 = 'product selector page' and h.type = 'PAGE' then 'product selector page'
+  WHEN h.contentGroup.contentGroup1 = 'others' and h.type = 'PAGE' then 'others'
+  WHEN h.contentGroup.contentGroup1 = 'product results page' and h.type = 'PAGE' then 'product results page'
+  WHEN h.contentGroup.contentGroup1 = 'homepage' and h.type = 'PAGE' then 'homepage'
+  WHEN h.contentGroup.contentGroup1 = 'internal search' and h.type = 'PAGE' then 'internal search'
+  WHEN h.contentGroup.contentGroup1 = 'my account' and h.type = 'PAGE' then 'my account'
+  WHEN h.contentGroup.contentGroup1 = 'customer services' and h.type = 'PAGE' then 'customer services'
+  END as activity
+, RANK() OVER (ORDER BY concat(fullVisitorId, cast(visitId as string), cast(h.hitNumber as string)) asc) as activity_instance
+, '' as resource
+FROM `test.test.ga_sessions_*`, unnest(hits) as h
+WHERE _table_suffix between '20200901' and '20200907'
+GROUP BY 1, 2, 4, 6, visitStartTime, h.time, h.hitNumber, visitId, h.contentGroup.contentGroup1
+ORDER BY activity_instance asc) 
+WHERE activity is not null 
